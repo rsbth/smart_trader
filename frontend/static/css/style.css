@@ -1,0 +1,176 @@
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Card Styles */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Analysis Results */
+#analysisResults h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+#currentPrice {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin: 0;
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    color: #6c757d;
+}
+
+.nav-tabs .nav-link.active {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* Trading Recommendation */
+#recommendationAction {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+/* Progress Bar */
+.progress {
+    height: 0.5rem;
+    border-radius: 1rem;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Trade Form */
+.trade-form {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+/* Loading Spinner */
+#loadingSpinner {
+    padding: 2rem;
+}
+
+/* Charts */
+canvas {
+    max-width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .col-md-8, .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    #recommendationAction {
+        font-size: 1.5rem;
+    }
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+/* Input Styles */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Analysis Section Styles */
+.analysis-section {
+    margin-bottom: 1.5rem;
+}
+
+.analysis-section h5 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.metric-card {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.metric-card .label {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.metric-card .value {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* Tooltip Styles */
+.tooltip {
+    font-size: 0.875rem;
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Table Styles */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.table td {
+    vertical-align: middle;
+}

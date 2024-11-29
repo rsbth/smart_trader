@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- Stock Search -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="input-group">
+                    <input type="text" id="stockSymbol" class="form-control" placeholder="Enter stock symbol (e.g., RELIANCE.NS)">
+                    <button class="btn btn-primary" onclick="analyzeStock()">
+                        <i class="bi bi-search"></i> Analyze
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Results -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Analysis Results</h5>
+            </div>
+            <div class="card-body">
+                <div id="analysisResults" style="display: none;">
+                    <!-- Stock Info -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 id="stockName"></h3>
+                        <h4 id="currentPrice"></h4>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="mb-4">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+
+                    <!-- Analysis Tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#technical">Technical</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#fundamental">Fundamental</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#sentiment">Sentiment</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        <div class="tab-pane fade show active" id="technical">
+                            <div id="technicalAnalysis"></div>
+                        </div>
+                        <div class="tab-pane fade" id="fundamental">
+                            <div id="fundamentalAnalysis"></div>
+                        </div>
+                        <div class="tab-pane fade" id="sentiment">
+                            <div id="sentimentAnalysis"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="loadingSpinner" class="text-center" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendation Card -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Trading Recommendation</h5>
+            </div>
+            <div class="card-body">
+                <div id="recommendationCard" style="display: none;">
+                    <div class="text-center mb-4">
+                        <h3 id="recommendationAction" class="mb-2"></h3>
+                        <div class="progress mb-3">
+                            <div id="confidenceBar" class="progress-bar" role="progressbar"></div>
+                        </div>
+                        <small class="text-muted">Confidence Score</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Target Levels</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Target Price:</span>
+                            <span id="targetPrice" class="text-success"></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Stop Loss:</span>
+                            <span id="stopLoss" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="trade-form">
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" min="1" value="1">
+                        </div>
+                        <button id="executeTrade" class="btn btn-success w-100 mb-2" onclick="executeTrade()">
+                            Execute Trade
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentSymbol = '';
+
+async function analyzeStock() {
+    const symbol = document.getElementById('stockSymbol').value.trim();
+    if (!symbol) return;
+
+    currentSymbol = symbol;
+    showLoading(true);
+
+    try {
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ symbol: symbol })
+        });
+
+        const data = await response.json();
+        updateUI(data);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error analyzing stock. Please try again.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function updateUI(data) {
+    // Update stock info
+    document.getElementById('stockName').textContent = currentSymbol;
+    document.getElementById('currentPrice').textContent = `₹${data.current_price}`;
+
+    // Update analysis sections
+    updateTechnicalAnalysis(data.technical_analysis);
+    updateFundamentalAnalysis(data.fundamental_analysis);
+    updateSentimentAnalysis(data.sentiment_analysis);
+
+    // Update recommendation
+    updateRecommendation(data.recommendation);
+
+    // Show results
+    document.getElementById('analysisResults').style.display = 'block';
+    document.getElementById('recommendationCard').style.display = 'block';
+}
+
+function showLoading(show) {
+    document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+    document.getElementById('analysisResults').style.display = show ? 'none' : 'block';
+    document.getElementById('recommendationCard').style.display = show ? 'none' : 'block';
+}
+
+async function executeTrade() {
+    const quantity = document.getElementById('quantity').value;
+    const recommendation = document.getElementById('recommendationAction').textContent;
+    
+    if (!confirm(`Are you sure you want to ${recommendation} ${quantity} shares of ${currentSymbol}?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/execute_trade', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                symbol: currentSymbol,
+                action: recommendation,
+                quantity: quantity
+            })
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+            alert('Trade executed successfully!');
+        } else {
+            alert(`Trade failed: ${data.message}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error executing trade. Please try again.');
+    }
+}
+
+// Add functions to update individual analysis sections
+function updateTechnicalAnalysis(data) {
+    // Implementation details
+}
+
+function updateFundamentalAnalysis(data) {
+    // Implementation details
+}
+
+function updateSentimentAnalysis(data) {
+    // Implementation details
+}
+
+function updateRecommendation(data) {
+    const actionElem = document.getElementById('recommendationAction');
+    const confidenceBar = document.getElementById('confidenceBar');
+    const targetPrice = document.getElementById('targetPrice');
+    const stopLoss = document.getElementById('stopLoss');
+
+    actionElem.textContent = data.action;
+    actionElem.className = `mb-2 ${data.action === 'BUY' ? 'text-success' : data.action === 'SELL' ? 'text-danger' : 'text-warning'}`;
+
+    confidenceBar.style.width = `${data.confidence * 100}%`;
+    confidenceBar.className = `progress-bar ${data.action === 'BUY' ? 'bg-success' : data.action === 'SELL' ? 'bg-danger' : 'bg-warning'}`;
+
+    targetPrice.textContent = `₹${data.target_price}`;
+    stopLoss.textContent = `₹${data.stop_loss}`;
+}
+</script>
+{% endblock %}
