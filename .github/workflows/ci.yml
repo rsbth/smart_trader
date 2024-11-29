@@ -15,6 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -39,8 +41,22 @@ jobs:
       run: |
         pytest --cov=backend tests/ --cov-report=xml
     
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
+        args: >
+          -Dsonar.projectKey=smart_trader
+          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.sources=backend
+          -Dsonar.tests=tests
+          -Dsonar.python.version=3.8,3.9
+          -Dsonar.exclusions=**/tests/**,**/__init__.py
+    
+    - name: SonarQube Quality Gate
+      uses: sonarsource/sonarqube-quality-gate-action@master
+      timeout-minutes: 5
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

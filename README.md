@@ -56,5 +56,32 @@ python app.py
 - One-click trade execution
 - Interactive charts and visualizations
 
+## Code Quality
+
+This project uses SonarQube for continuous code quality inspection. SonarQube analyzes:
+- Code quality
+- Test coverage
+- Code duplication
+- Security vulnerabilities
+- Technical debt
+
+### SonarQube Setup
+
+1. Set up SonarQube server:
+   - Self-hosted: Follow [SonarQube installation guide](https://docs.sonarqube.org/latest/setup/install-server/)
+   - Cloud: Use [SonarCloud](https://sonarcloud.io)
+
+2. Configure GitHub secrets:
+   ```
+   SONAR_TOKEN=your-sonar-token
+   SONAR_HOST_URL=your-sonar-url
+   ```
+
+3. Quality Gates:
+   - Code coverage: minimum 80%
+   - Duplicated lines: maximum 3%
+   - Technical debt ratio: maximum 5%
+   - Security vulnerabilities: 0 critical issues
+
 ## Note
 Please ensure you have the necessary API keys and trading account credentials before using the trading features.
