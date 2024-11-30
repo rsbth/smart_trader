@@ -22,3 +22,5 @@ pytest-cov==4.1.0
 flake8==7.0.0
 gunicorn>=20.1.0
 redis>=4.0.0
+werkzeug>=3.0.6 # not directly required, pinned by Snyk to avoid a vulnerability
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
