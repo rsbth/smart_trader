@@ -1,23 +1,19 @@
-from flask import Flask, render_template, jsonify, request, redirect, session
-from dotenv import load_dotenv
-import os
-
-# Load environment variables
-load_dotenv()
-
-# Initialize Flask app
-app = Flask(__name__, 
-    template_folder='frontend/templates',
-    static_folder='frontend/static'
-)
-app.secret_key = os.urandom(24)  # Required for session management
-
-# Import analysis modules (to be implemented)
+from flask import Flask, request, jsonify, render_template
+from backend.broker_integration.broker import broker
 from backend.sentiment_analysis.analyzer import SentimentAnalyzer
 from backend.technical_analysis.analyzer import TechnicalAnalyzer
 from backend.fundamental_analysis.analyzer import FundamentalAnalyzer
 from backend.recommendation_engine.recommender import TradeRecommender
-from backend.broker_integration.broker import broker
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+app = Flask(__name__,
+    template_folder='frontend/templates',
+    static_folder='frontend/static'
+)
+app.secret_key = os.urandom(24)
 
 # Initialize analyzers
 sentiment_analyzer = SentimentAnalyzer()
@@ -27,12 +23,38 @@ recommender = TradeRecommender()
 
 @app.route('/')
 def index():
+    """Render the main page"""
     return render_template('index.html')
 
-@app.route('/api/analyze', methods=['POST'])
-def analyze_stock():
-    data = request.get_json()
-    symbol = data.get('symbol')
+@app.route('/api/v1/broker/login', methods=['POST'])
+def login():
+    """Login to Angel Broking"""
+    success = broker.login()
+    if success:
+        return jsonify({
+            'status': 'success',
+            'message': 'Successfully logged in to Angel Broking'
+        })
+    return jsonify({
+        'status': 'error',
+        'message': 'Failed to login to Angel Broking'
+    }), 401
+
+@app.route('/api/v1/broker/profile')
+def profile():
+    """Get user profile"""
+    if not broker.access_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+    return jsonify(broker.get_profile())
+
+@app.route('/api/v1/analyze', methods=['POST'])
+def analyze():
+    """Analyze a stock"""
+    data = request.json
+    if not data or 'symbol' not in data:
+        return jsonify({'error': 'Symbol is required'}), 400
+
+    symbol = data['symbol']
     
     # Perform analysis
     sentiment_score = sentiment_analyzer.analyze(symbol)
@@ -48,52 +70,21 @@ def analyze_stock():
     
     return jsonify({
         'symbol': symbol,
-        'sentiment_analysis': sentiment_score,
-        'technical_analysis': technical_signals,
-        'fundamental_analysis': fundamental_metrics,
+        'sentiment': sentiment_score,
+        'technical': technical_signals,
+        'fundamental': fundamental_metrics,
         'recommendation': recommendation
     })
-
-@app.route('/api/execute_trade', methods=['POST'])
-def execute_trade():
-    data = request.get_json()
-    # Implement trade execution logic here
-    return jsonify({'status': 'success', 'message': 'Trade executed'})
-
-@app.route('/api/v1/broker/login')
-def login():
-    """Initiate Zerodha login process"""
-    login_url = broker.get_login_url()
-    return redirect(login_url)
-
-@app.route('/api/v1/broker/callback')
-def callback():
-    """Handle Zerodha callback after successful login"""
-    request_token = request.args.get('request_token')
-    if not request_token:
-        return jsonify({'error': 'No request token received'}), 400
-
-    success = broker.set_access_token(request_token)
-    if success:
-        return jsonify({'message': 'Successfully authenticated with Zerodha'})
-    return jsonify({'error': 'Failed to authenticate'}), 401
-
-@app.route('/api/v1/broker/webhook', methods=['POST'])
-def webhook():
-    """Handle Zerodha postback for order updates"""
-    data = request.json
-    # Process the webhook data (implement based on your needs)
-    return jsonify({'status': 'success'})
 
 @app.route('/api/v1/trade', methods=['POST'])
 def trade():
     """Execute a trade"""
+    if not broker.access_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+
     data = request.json
     if not data or not all(k in data for k in ['symbol', 'transaction_type', 'quantity']):
         return jsonify({'error': 'Missing required parameters'}), 400
-
-    if not broker.access_token:
-        return jsonify({'error': 'Not authenticated with Zerodha'}), 401
 
     result = broker.execute_trade(
         data['symbol'],
@@ -107,12 +98,58 @@ def trade():
 def portfolio():
     """Get portfolio details"""
     if not broker.access_token:
-        return jsonify({'error': 'Not authenticated with Zerodha'}), 401
+        return jsonify({'error': 'Not authenticated'}), 401
 
     return jsonify({
         'holdings': broker.get_holdings(),
-        'positions': broker.get_positions()
+        'positions': broker.get_positions(),
+        'funds': broker.get_funds()
     })
+
+@app.route('/api/v1/orders')
+def orders():
+    """Get order book"""
+    if not broker.access_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    return jsonify(broker.get_order_book())
+
+@app.route('/api/v1/orders/<order_id>', methods=['DELETE'])
+def cancel_order(order_id):
+    """Cancel an order"""
+    if not broker.access_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    result = broker.cancel_order(order_id)
+    if result:
+        return jsonify({'status': 'success', 'message': 'Order cancelled'})
+    return jsonify({'status': 'error', 'message': 'Failed to cancel order'}), 400
+
+@app.route('/api/v1/orders/webhook', methods=['POST'])
+def webhook():
+    """Handle Angel Broking postback notifications"""
+    try:
+        data = request.json
+        # Log the webhook data
+        app.logger.info(f"Received webhook data: {data}")
+        
+        # Process different types of notifications
+        feed_type = data.get('feed_type')
+        if feed_type == 'order':
+            # Handle order updates
+            order_id = data.get('order_id')
+            status = data.get('status')
+            app.logger.info(f"Order {order_id} status updated to {status}")
+        elif feed_type == 'position':
+            # Handle position updates
+            symbol = data.get('trading_symbol')
+            quantity = data.get('quantity')
+            app.logger.info(f"Position update for {symbol}: quantity {quantity}")
+            
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        app.logger.error(f"Error processing webhook: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

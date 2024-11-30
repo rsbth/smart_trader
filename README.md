@@ -1,87 +1,147 @@
 # Smart Trader
 
-A comprehensive trading application that provides intelligent trading recommendations based on multiple analysis factors:
+An AI-powered trading application for Indian stock markets with advanced market analysis and automated trading capabilities.
 
-1. Sentiment Analysis
-   - Social media sentiment
-   - News sentiment
-   - Overall market sentiment
+## Architecture
 
-2. Technical Analysis
-   - Candlestick patterns
-   - Support and resistance levels
-   - Moving averages
-   - Technical indicators
+![Smart Trader Architecture](docs/smart_trader_architecture.png)
 
-3. Fundamental Analysis
-   - Financial ratios
-   - Quarterly earnings
-   - Revenue growth
-   - P/E ratio analysis
+The application is deployed on AWS with the following components:
 
-## Setup
+### Network Layer
+- **VPC** with public and private subnets across multiple availability zones
+- **Application Load Balancer** for traffic distribution
+- **Route 53** for DNS management
+- **ACM** for SSL/TLS certificates
 
-1. Create a virtual environment:
+### Compute Layer
+- **ECS Fargate** for running containerized applications
+- Auto-scaling based on CPU and memory utilization
+- Task definitions with environment-specific configurations
+
+### Data Layer
+- **RDS PostgreSQL** for persistent storage
+- **ElastiCache Redis** for session management and caching
+- Multi-AZ deployment for high availability
+
+### Security
+- **Secrets Manager** for sensitive credentials
+- Security groups for network access control
+- Private subnets for application and database
+- SSL/TLS encryption for data in transit
+- Database encryption at rest
+
+### Monitoring & Logging
+- **CloudWatch** for logs and metrics
+- Container insights enabled
+- Custom metrics and alarms
+- Performance monitoring
+
+## Application Components
+
+### Analysis Modules
+1. **Sentiment Analysis**
+   - Integrates News API and Twitter API
+   - Generates sentiment scores for stocks
+
+2. **Technical Analysis**
+   - Implements candlestick pattern recognition
+   - Calculates technical indicators (RSI, MACD)
+   - Identifies support and resistance levels
+
+3. **Fundamental Analysis**
+   - Retrieves financial metrics
+   - Analyzes company financials
+   - Calculates key ratios
+
+### Trading Module
+- Angel Broking SmartAPI integration
+- Real-time order execution
+- Portfolio management
+- Risk management
+
+## Development Setup
+
+1. Create and activate virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Unix/macOS
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
-3. Set up environment variables in `.env`:
-```
-NEWS_API_KEY=your_news_api_key
-TWITTER_API_KEY=your_twitter_api_key
-TWITTER_API_SECRET=your_twitter_secret
-BROKER_API_KEY=your_broker_api_key
-BROKER_API_SECRET=your_broker_secret
-```
-
-4. Run the application:
+3. Set up environment variables:
 ```bash
-python app.py
+cp .env.example .env
+# Edit .env with your credentials
 ```
 
-## Features
+4. Run tests:
+```bash
+pytest
+```
 
-- Real-time stock data from NSE/BSE
-- Sentiment analysis from social media and news
-- Technical analysis with multiple indicators
-- Fundamental analysis of companies
-- Automated trading recommendations
-- One-click trade execution
-- Interactive charts and visualizations
+## Deployment
 
-## Code Quality
+### Prerequisites
+- AWS CLI configured
+- AWS CDK CLI installed
+- Docker installed
 
-This project uses SonarQube for continuous code quality inspection. SonarQube analyzes:
-- Code quality
-- Test coverage
-- Code duplication
-- Security vulnerabilities
-- Technical debt
+### Infrastructure Deployment
+1. Install CDK dependencies:
+```bash
+cd cdk
+pip install -r requirements.txt
+```
 
-### SonarQube Setup
+2. Deploy the stack:
+```bash
+cdk deploy
+```
 
-1. Set up SonarQube server:
-   - Self-hosted: Follow [SonarQube installation guide](https://docs.sonarqube.org/latest/setup/install-server/)
-   - Cloud: Use [SonarCloud](https://sonarcloud.io)
+### Application Deployment
+The application is automatically deployed through GitHub Actions CI/CD pipeline:
+- Push to main branch deploys to staging
+- Creating a release deploys to production
 
-2. Configure GitHub secrets:
-   ```
-   SONAR_TOKEN=your-sonar-token
-   SONAR_HOST_URL=your-sonar-url
-   ```
+## Monitoring
 
-3. Quality Gates:
-   - Code coverage: minimum 80%
-   - Duplicated lines: maximum 3%
-   - Technical debt ratio: maximum 5%
-   - Security vulnerabilities: 0 critical issues
+### Available Metrics
+- Application performance
+- Trading operations
+- System health
+- Security events
 
-## Note
-Please ensure you have the necessary API keys and trading account credentials before using the trading features.
+### Logging
+- Application logs in CloudWatch
+- Access logs from ALB
+- Database performance insights
+
+## Security
+
+### Authentication
+- API key authentication for external services
+- JWT tokens for user sessions
+- TOTP for broker authentication
+
+### Data Protection
+- All sensitive data in Secrets Manager
+- SSL/TLS encryption
+- Network isolation
+- Regular security audits
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Run tests and linting
+4. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

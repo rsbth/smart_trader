@@ -1,0 +1,45 @@
+digraph "Smart Trader Architecture" {
+	graph [fontcolor="#2D3436" fontname="Sans-Serif" fontsize=15 label="Smart Trader Architecture" nodesep=0.60 pad=2.0 rankdir=TB ranksep=0.75 splines=ortho]
+	node [fixedsize=true fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 height=1.4 imagescale=true labelloc=b shape=box style=rounded width=1.4]
+	edge [color="#7B8894"]
+	"1219abae8a1e4b36bef462508f9cc0c3" [label="Route 53" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/network/route-53.png" shape=none]
+	ec7bbfd276ff41cda437b55303e752db [label="SSL Certificate" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/security/certificate-manager.png" shape=none]
+	"3cedcfa3051648cb9220336f691b8a2b" [label="Application Load Balancer" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/network/elastic-load-balancing.png" shape=none]
+	"1219abae8a1e4b36bef462508f9cc0c3" -> ec7bbfd276ff41cda437b55303e752db [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	ec7bbfd276ff41cda437b55303e752db -> "3cedcfa3051648cb9220336f691b8a2b" [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	be4308e552c24a6192288ca89008b6d6 -> ff39c974b5af43d2ab0b49940b298f56 [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	"3cedcfa3051648cb9220336f691b8a2b" -> be4308e552c24a6192288ca89008b6d6 [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	subgraph cluster_VPC {
+		graph [bgcolor="#E5F5FD" fontname="Sans-Serif" fontsize=12 label=VPC labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+		cf6be056a66047b2844ebae57a5e370e [label="Secrets Manager" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/security/secrets-manager.png" shape=none]
+		"36f9fe990b884bddbb6685ec6dacb7bd" [label=CloudWatch height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/management/cloudwatch.png" shape=none]
+		subgraph "cluster_ECS Cluster" {
+			graph [bgcolor="#EBF3E7" fontname="Sans-Serif" fontsize=12 label="ECS Cluster" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+			be4308e552c24a6192288ca89008b6d6 [label="ECS Service" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/compute/elastic-container-service.png" shape=none]
+			subgraph "cluster_Task Definition" {
+				graph [bgcolor="#ECE8F6" fontname="Sans-Serif" fontsize=12 label="Task Definition" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+				ff39c974b5af43d2ab0b49940b298f56 [label="Smart Trader App" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/compute/elastic-container-service-container.png" shape=none]
+			}
+		}
+		subgraph "cluster_Data Layer" {
+			graph [bgcolor="#EBF3E7" fontname="Sans-Serif" fontsize=12 label="Data Layer" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+			"0735939f62db4f0a8caa266f7b982af6" [label=PostgreSQL height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/database/rds.png" shape=none]
+			"57837ec697f14c20a14465945af25887" [label=Redis height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/database/elasticache.png" shape=none]
+		}
+		subgraph "cluster_Application Components" {
+			graph [bgcolor="#EBF3E7" fontname="Sans-Serif" fontsize=12 label="Application Components" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+			subgraph "cluster_Analysis Modules" {
+				graph [bgcolor="#ECE8F6" fontname="Sans-Serif" fontsize=12 label="Analysis Modules" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+				bcf0b47bc54c44a482b24cd078486baa [label="Sentiment Analysis" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/programming/framework/flask.png" shape=none]
+				f0934a2390e7499b8964bad2cbfff95c [label="Technical Analysis" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/programming/framework/flask.png" shape=none]
+				b55a6d05dfe9463ebcd7210da4c500a6 [label="Fundamental Analysis" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/programming/framework/flask.png" shape=none]
+			}
+			subgraph "cluster_Trading Module" {
+				graph [bgcolor="#ECE8F6" fontname="Sans-Serif" fontsize=12 label="Trading Module" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+				"9c1e295e11854e5cbe5429ae88e311b4" [label="Broker Integration" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/programming/framework/flask.png" shape=none]
+				af8b46dbfc654c35b9349d7f4d10c194 [label="Trading Engine" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/programming/framework/flask.png" shape=none]
+			}
+		}
+		"928a2729d9a348039894c7851d549f57" [label="Event Bridge" height=1.9 image="/Users/santosh/CascadeProjects/smart_trader/venv/lib/python3.9/site-packages/resources/aws/integration/application-integration.png" shape=none]
+	}
+}

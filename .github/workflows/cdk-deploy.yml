@@ -1,0 +1,53 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    paths:
+      - 'cdk/**'
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-south-1
+  CDK_DEPLOY_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+  CDK_DEPLOY_REGION: ap-south-1
+
+jobs:
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        working-directory: ./cdk
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: CDK Synth
+        working-directory: ./cdk
+        run: npx cdk synth
+
+      - name: Run cdk-nag
+        working-directory: ./cdk
+        run: npx cdk-nag
+
+      - name: CDK Deploy
+        working-directory: ./cdk
+        run: |
+          npx cdk deploy --require-approval never \
+            --context account=${{ env.CDK_DEPLOY_ACCOUNT }} \
+            --context region=${{ env.CDK_DEPLOY_REGION }}
