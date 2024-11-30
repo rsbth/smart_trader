@@ -1,8 +1,6 @@
-from smartapi import SmartConnect
 from flask import current_app
 import os
 from dotenv import load_dotenv
-import pyotp
 
 load_dotenv()
 
@@ -134,5 +132,83 @@ class AngelBroker:
             current_app.logger.error(f"Error getting token for symbol {symbol}: {str(e)}")
             return None
 
+class BrokerClient:
+    def __init__(self):
+        self.api_key = os.getenv('BROKER_API_KEY', 'mock_api_key')
+        self.client_id = os.getenv('BROKER_CLIENT_ID', 'mock_client_id')
+        self.access_token = None
+        self.refresh_token = None
+        self.feed_token = None
+
+    def login(self):
+        """Mock login"""
+        try:
+            self.access_token = "mock_access_token"
+            self.refresh_token = "mock_refresh_token"
+            self.feed_token = "mock_feed_token"
+            return True
+        except Exception as e:
+            current_app.logger.error(f"Error logging in: {str(e)}")
+            return False
+
+    def get_profile(self):
+        """Get mock user profile"""
+        try:
+            return {
+                "name": "Mock User",
+                "email": "mock@example.com",
+                "client_id": self.client_id
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error fetching profile: {str(e)}")
+            return None
+
+    def get_holdings(self):
+        """Get mock holdings"""
+        try:
+            return [
+                {
+                    "symbol": "AAPL",
+                    "quantity": 10,
+                    "average_price": 150.0
+                },
+                {
+                    "symbol": "GOOGL",
+                    "quantity": 5,
+                    "average_price": 2500.0
+                }
+            ]
+        except Exception as e:
+            current_app.logger.error(f"Error fetching holdings: {str(e)}")
+            return None
+
+    def place_order(self, symbol, quantity, side, order_type="MARKET"):
+        """Place mock order"""
+        try:
+            return {
+                "order_id": "mock_order_123",
+                "symbol": symbol,
+                "quantity": quantity,
+                "side": side,
+                "order_type": order_type,
+                "status": "PLACED"
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error placing order: {str(e)}")
+            return None
+
+    def get_order_status(self, order_id):
+        """Get mock order status"""
+        try:
+            return {
+                "order_id": order_id,
+                "status": "EXECUTED",
+                "filled_quantity": 10,
+                "average_price": 150.0
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error fetching order status: {str(e)}")
+            return None
+
 # Create a broker instance
-broker = AngelBroker()
+broker = BrokerClient()

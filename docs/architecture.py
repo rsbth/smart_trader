@@ -31,9 +31,7 @@ with Diagram("Smart Trader Architecture", show=False, direction="TB"):
             
             # Task containers
             with Cluster("Task Definition"):
-                containers = [
-                    ElasticContainerServiceContainer("Smart Trader App")
-                ]
+                containers = ElasticContainerServiceContainer("Smart Trader App")
             
             service >> containers
         
@@ -58,7 +56,9 @@ with Diagram("Smart Trader Architecture", show=False, direction="TB"):
         
         # Connect components
         alb >> service
-        containers >> [sentiment, technical, fundamental] >> db
+        containers >> sentiment >> db
+        containers >> technical >> db
+        containers >> fundamental >> db
         containers >> trading >> broker
         broker >> events
         containers >> cache
